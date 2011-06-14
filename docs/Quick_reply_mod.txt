@@ -1,0 +1,33 @@
+=> ABILITARE LA QUICK REPLY IN ALTRI TEMPLATE
+
+Per abilitare la QUICK REPLY anche negli altri template installati, basta sequire i sequenti passaggi:
+
+1) Aprire il file viewtopic_body.tpl nella cartella del vostro template
+
+2) Cercare la riga contenente il sequente codice_
+	Codice:
+		  {S_TOPIC_ADMIN}</td>
+		  
+	E aggiungere dopo di esso questo codice_
+	Codice:
+	  <!-- QUICK Reply Mod -->
+  	  <td align="center">{QUICK_REPLY_FORM}</td>
+	  <!-- QUICK Reply Mod -->
+	  
+	Salvare e chiudere il file
+
+3)Fine :D
+
+
+Note: NON dimenticate che se cambiare il pacchetto della lingua dovrete aggiungere anche 
+la traduzione delle righe dicodice per la mod che sarebbero_
+
+	// Quick Reply Mod
+	$lang['Quick_Reply'] = 'Quick Reply';
+	$lang['Quick_quote'] = 'Quote the last message';
+
+Da aggiungere prima di
+
+	?>
+	
+By KinG-InFeT - http://salviamophpbb2.webnet32.com/

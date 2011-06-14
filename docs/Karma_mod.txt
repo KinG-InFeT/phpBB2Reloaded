@@ -1,0 +1,191 @@
+/***********************************************************
+ *                   phpBB Karma MOD 0.2                   *
+ *                                                         *
+ *                 by BlackLight, 2008                     *
+ *                                                         *
+ *               Modded By KinG-InFeT, 2011                *
+ *                                                         *
+ *                Released under GPL licence               *
+ ***********************************************************/
+
+MOD per phpBB 2.0.23 (ma dovrebbe essere compatibile anche con versioni maggiori del ramo 2.0.x) che 
+consente di avere un sistema per la gestione delle reputazioni degli utenti simile al sistema su MyBB o al karma su SMF.
+
+Per applicarla:
+
+-- Aggiungere la colonna user_karma alla tabella phpbb_users:
+ALTER TABLE phpbb_users ADD COLUMN user_karma int;
+ALTER TABLE phpbb_users ALTER column user_karma SET default 0;
+UPDATE phpbb_users SET user_karma = 0;
+
+-- Aggiungere la tabella phpbb_karma:
+CREATE TABLE phpbb_karma(
+    voted  int,
+    voter  char(64),
+    primary key(voted,voter)
+);
+
+-- Creare nella directory principale del forum il file get_karma.php con il seguente contenuto:
+ - MODDED BY KinG-InFeT
+<?php
+define('IN_PHPBB', true);
+$phpbb_root_path = './';
+include($phpbb_root_path . 'extension.inc');
+include($phpbb_root_path . 'common.'.$phpEx);
+include($phpbb_root_path . 'includes/bbcode.'.$phpEx);
+include($phpbb_root_path . 'includes/functions_post.'.$phpEx);
+include($phpbb_root_path . 'config.'.$phpEx);
+
+$ref = htmlentities($_SERVER['HTTP_REFERER']);
+
+//
+// Start session management
+//
+$userdata = session_pagestart($user_ip, $forum_id);
+init_userprefs($userdata);
+// End session management
+
+//
+// Start auth check
+//
+$is_auth = array();
+$is_auth = auth(AUTH_ALL, $forum_id, $userdata, $forum_topic_data);
+
+if ( !$userdata['session_logged_in'] )
+{
+        message_die(GENERAL_MESSAGE,"Attenzione - Devi essere loggato per poter inserire un voto");
+        print '<meta http-equiv="Refresh" content="3;url='.$ref.'">';
+}
+
+//
+// End auth check
+//
+
+$key = "00";
+$uid = crypt($userdata['user_id'],$key);
+
+$voted = mysql_real_escape_string(htmlspecialchars($_GET['voted']));
+$voter = mysql_real_escape_string($_GET['voter']);
+$vote  = htmlentities($_GET['vote']);
+
+if ($voter == "00T4VBLgHKsI2")  {
+        message_die(GENERAL_MESSAGE,"Attenzione - Devi essere loggato per poter inserire un voto");
+        print '<meta http-equiv="Refresh" content="3;url='.$ref.'">';
+        die();
+}
+
+if (strcmp($uid,$voter))  {
+        message_die(GENERAL_MESSAGE,"Errore - ID votante e ID di sessione non coincidono");
+        print '<meta http-equiv="Refresh" content="3;url='.$ref.'">';
+        die();
+}
+
+if (crypt($voted,$key) == $voter)  {
+        message_die(GENERAL_MESSAGE,"Errore - Non puoi votarti da solo");
+        print '<meta http-equiv="Refresh" content="3;url='.$ref.'">';
+        die();
+}
+
+if (strcmp(intval($voted),$voted))  {
+	message_die(GENERAL_MESSAGE,"Errore - Utente votato non valido".
+		'<br><meta http-equiv="Refresh" content="3;url='.$ref.'">');
+	die();
+}
+
+if (!($db=mysql_connect($dbhost,$dbuser,$dbpass)))  {
+        message_die(GENERAL_MESSAGE,"Errore di connessione al database - Impossibile inserire il voto\n");
+        print '<meta http-equiv="Refresh" content="3;url='.$ref.'">';
+        die();
+}
+
+if (!mysql_select_db($dbname,$db))  {
+        message_die(GENERAL_MESSAGE,"Errore di connessione al database - Impossibile inserire il voto\n");
+        print '<meta http-equiv="Refresh" content="3;url='.$ref.'">';
+        die();
+}
+
+if ($vote === "plus")
+        $update = "UPDATE ".$table_prefix."users SET user_karma=user_karma+1 WHERE user_id='{$voted}'";
+elseif ($vote === "minus")
+        $update = "UPDATE ".$table_prefix."users SET user_karma=user_karma-1 WHERE user_id='{$voted}'";
+else  {
+        message_die(GENERAL_MESSAGE,"Errore - Modalit&agrave; di voto non valida\n");
+        print '<meta http-equiv="Refresh" content="3;url='.$ref.'">';
+        die();
+}
+
+$query = "INSERT INTO ".$table_prefix."karma (voted,voter) values ('{$voted}','{$voter}')";
+
+if (!mysql_query($query))  {
+        message_die(GENERAL_MESSAGE,"Errore nell' inserimento del voto (forse hai gi&agrave; votato quest' utente?)\n");
+        print '<meta http-equiv="Refresh" content="3;url='.$ref.'">';
+        die();
+}
+
+if (!mysql_query($update))  {
+        message_die(GENERAL_MESSAGE,"Errore nell'inserimento del voto\n");
+        print '<meta http-equiv="Refresh" content="3;url='.$ref.'">';
+        die();
+}
+
+message_die(GENERAL_MESSAGE,"Voto inserito con successo!\n");
+print '<meta http-equiv="Refresh" content="3;url='.$ref.'">';
+mysql_close($db);
+?>
+
+-- Aprire il file viewtopic.php. Alla riga 390 aggiungere nella field list della SELECT u.user_karma:
+$sql = "SELECT u.username, u.user_id, u.user_posts, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_regdate, u.user_msnm, u.user_viewemail, u.user_rank, u.user_sig, u.user_sig_bbcode_uid, u.user_avatar, u.user_avatar_type, u.user_allowavatar, u.user_allowsmile, u.user_karma, p.*,  pt.post_text, pt.post_subject, pt.bbcode_uid
+
+ - Alla riga 856, subito dopo il ciclo for, aggiungere le seguenti righe:
+
+if (intval($postrow[$i]['user_karma'])>0)
+	$postrow[$i]['user_karma']='<b><font color="#119911">'.$postrow[$i]['user_karma'].'</b></font>'.
+	'<br><a href="get_karma.php?voter='.
+	htmlspecialchars(crypt($userdata['user_id'],"00")).'&voted='.$postrow[$i]['user_id'].
+	'&vote=plus">Positivo</a>/<a href="get_karma.php?voter='.
+	htmlspecialchars(crypt($userdata['user_id'],"00")).'&voted='.
+	$postrow[$i]['user_id'].'&vote=minus">Negativo</a>';
+elseif (intval($postrow[$i]['user_karma'])<0)
+	$postrow[$i]['user_karma']='<b><font color="#991111">'.$postrow[$i]['user_karma'].'</b></font>'.
+	'<br><a href="get_karma.php?voter='.
+	htmlspecialchars(crypt($userdata['user_id'],"00")).'&voted='.$postrow[$i]['user_id'].
+	'&vote=plus">Positivo</a>/<a href="get_karma.php?voter='.
+	htmlspecialchars(crypt($userdata['user_id'],"00")).'&voted='.
+	$postrow[$i]['user_id'].'&vote=minus">Negativo</a>';
+else
+	$postrow[$i]['user_karma']='<b><font color="#888888">'.$postrow[$i]['user_karma'].'</b></font>'.
+	'<br><a href="get_karma.php?voter='.
+	htmlspecialchars(crypt($userdata['user_id'],"00")).'&voted='.$postrow[$i]['user_id'].
+	'&vote=plus">Positivo</a>/<a href="get_karma.php?voter='.
+	htmlspecialchars(crypt($userdata['user_id'],"00")).'&voted='.
+	$postrow[$i]['user_id'].'&vote=minus">Negativo</a>';
+
+$poster_karma = ( $postrow[$i]['user_karma']!=NULL && $postrow[$i]['user_id']!=ANONYMOUS ) ?
+	"<br>Reputazione: ".$postrow[$i]['user_karma'] : "";
+
+ - Alla riga 1220, inserire:
+'POSTER_KARMA' => $poster_karma,
+
+-- Aprire il file includes/usercp_viewprofile.php
+ - Alla riga 71 aggiungere:
+
+$karma = $profiledata['user_karma'];
+
+if (intval($karma)<0)
+        $karma='<font color="#991111">'.$karma.'</font>';
+elseif (intval($karma)>0)
+        $karma='<font color="#119911">'.$karma.'</font>';
+else
+        $karma='<font color="#444444">'.$karma.'</font>';
+
+ - Alla riga 204:
+ 'KARMA' => $karma,
+
+-- Se si usa subSilver, aprire il file templates/subSilver/profile_view_body.tpl
+ - Alla riga 46 Sostituire quello che trovi (dopo l'apertura del <tr>) con questo:
+    <td class="catLeft" align="center" height="28"> <b><span class="gen">Karma: {KARMA}</span><br /><b><span class="gen">{L_CONTACT} {USERNAME} </span></b></td>
+
+-- Aprire il file templates/subSilver/viewtopic_body.tpl
+ - Alla riga 29 aggiungere
+ <td width="150" align="left" valign="top" class="{postrow.ROW_CLASS}"><span class="name"><a name="{postrow.U_POST_ID}"></a><b>{postrow.POSTER_NAME}</b></span><br /><span class="postdetails">{postrow.POSTER_RANK}<br />{postrow.RANK_IMAGE}{postrow.POSTER_AVATAR}<br /><br />{postrow.POSTER_JOINED}<br />{postrow.POSTER_POSTS}<br />{postrow.POSTER_FROM}<br />{postrow.POSTER_KARMA}<br /></span></td>
+ 

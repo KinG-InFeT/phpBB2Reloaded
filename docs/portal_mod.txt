@@ -1,0 +1,35 @@
+    !!! INSTALLAZIONE DEL PORTALE SU DI UN'ALTRO TEMPLATE !!!
+
+Se volete installare la MOD Portale avendo un'altro template è semplicissimo!
+Basta infatti copiare il file portal_body.tpl che avete nel tema subSilver e copiarlo nella cartella
+del nuovo template.
+Fatto questo  o linkate direttamente il file portale.php oppure andate a modificare il menu del nuovo 
+template inserendo il link al portale.
+
+    !!! MODIFICARE IL TEMPLATE DEL PORTALE !!!
+    
+Per effettuare modifiche al template del portale, basta andare a modificare il file:
+    
+    /template/[VOSTRO_TEMPLATE]/portal_body.tpl
+    
+Se utilizzare il template subSilver allora il file si troverà in:
+    
+    /template/subSilver/portal_body.tpl
+    
+E andrete a modificare SOLO il codice HTML.
+
+!!! ATTENZIONE !!!
+Se andrete a modificare parti di codice relativo al corertto funzionamento della MOD,
+è probabile che la mod avrà qualche funzionamento.
+Modificate solo se sapete cosa state facendo e ricordate di non modificare o cancellare
+le stringhe di questo tipo:
+    
+    {SITE_DESCRIPTION}
+    
+Tutto ciò che si trova tra parentesi graffe {}.
+
+Per qualsiasi aiuto contattate via email lo staf di Salviamo-phpBB2 al sito: http://salviamophpbb2.webnet32.com/contact.php
+
+
+Powered By Salviamo-phpBB2
+Thanks Spiderz - http://spiderz.altervista.org/

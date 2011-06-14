@@ -1,0 +1,248 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<title>How to add a custom CAPTCHA to phpBB2</title>
+	
+<style type="text/css">
+<!--
+	body {
+		font-family: Verdana, Arial;
+		font-size: 14px;
+		line-height: 1.4;
+	}
+	
+	h1, h2 {
+		font-family: Trebuchet Ms;
+	}
+	
+	p {
+		margin-left: 1em;
+	}
+	
+	pre {
+		line-height: 1;
+		font-size: 12px;
+	}
+//-->
+</style>
+</head>
+
+<body>
+
+<h1>How to add a custom CAPTCHA to phpBB2</h1>
+
+<p><i>Last Updated</i>: 26 May, 2006</p>
+
+<h2>Overview</h2>
+
+<p>
+	<a href="http://www.phpbb.com/">phpBB</a> is "an open source, flat style, message board written in PHP."
+	Because thousands of people use it with little or no modifications, it is a very popular target for spammers.
+	They can use bots to automatically fill out the registration forms, including "clicking" on the activation link
+	inside e-mails. A <a href="http://en.wikipedia.org/wiki/Captcha">CAPTCHA</a> is some sort of challenge that will
+	(in theory) be easy for a human to solve, but
+	hard for a computer to. Typically, they are implemented as a distorted word that the user must enter to 
+	complete the form.
+</p>
+
+<p style="text-align: center;">
+	<img src="http://img856.imageshack.us/img856/7978/captchav.png" width="279" height="90" alt="sample CAPTCHA image" style="border-bottom: solid #ccc 1px; padding-bottom: 0.5em; margin-bottom: 0.5em;"/><br />
+	<small><b>sample CAPTCHA image</b></small>
+</p>
+
+<h2>Disclaimer</h2>
+<p>
+	The method that I will describe is very much a hack, but it is quite simple (despite looking long).
+	I haven't packaged anything up in an installable mod. Consider this an exercise in how to make your own
+	mods, as the principles here apply to any custom registration mod. If you prefer to use phpBB2's default
+	CAPTCHA, just go to your control panel's <i>General Admin</i>,
+	<i>Configuration</i>, and <i>Enable Visual Confirmation</i> and forget you saw this. <tt>:)</tt>
+</p>
+
+<p>
+	Some people may have difficulty reading a CAPTCHA image. If you think your audience will need assistance,
+	it would be kind of you to supply an e-mail address for those who cannot read the image. There may, in fact,
+	be legal reasons (depending on your line of business, etc.) why you have to supply a valid alternative. And
+	last of all, I am not responsible for any damage done by following this tutorial.
+</p>
+
+<h2>Getting Started</h2>
+<p>
+	You'll need several things:
+</p>
+<ul>
+	<li><b>phpBB2</b> - This is tested and confirmed to work on version 2.0.19. If you pay attention to details, it should
+		probably work on any 2.0.X version.
+	</li>
+	<li><b>freecap</b> - Available at <a href="http://www.puremango.co.uk">www.puremango.co.uk</a>, freecap is a free
+		PHP CAPTCHA script. We will be adding this to phpBB2's registration form.
+	</li>
+	<li><b>PHP 4/5 with GD enabled</b> - Make sure GD is enabled. <tt>&lt;?php phpinfo(); ?&gt;</tt> should help you find
+		out. This article will not discuss installing it.</li>
+	<li><b>Admin Rights</b> - You have to be able to edit the PHP files on the server.</li>
+</ul>
+<p>
+	Note that you will be editing three files. I highly recommend that you make a backup copy of these those files before 
+	you edit them. Once you are sure you will be able to get everything you need:
+</p>
+<ol>
+	<li>
+		<strong>Get freecap</strong> and put it on the server. Either:<br /><br />
+		<ul>
+			<li>
+				<strong>Use a Remote Shell</strong>
+				<ul>
+					<li>Telnet or SSH into your server</li>
+					<li><tt>cd /my/path/to/phpBB2</tt></li>
+					<li><tt>wget http://www.puremango.co.uk/freecap1.4.1.zip</tt> (Note: be sure to check the website for the latest version.)</li>
+					<li><tt>unzip -a freecap1.4.1.zip</tt></li>
+					<li><tt>rm freecap1.4.1.zip</tt></li>
+					<li><tt>mv freecap1.4.1 freecap</tt></li>
+					
+				</ul>
+				<br />
+			</li>
+			
+			<li>
+				<strong>OR Use FTP Locally</strong>
+				<ul>
+					<li>Go to <a href="http://www.puremango.co.uk">www.puremango.co.uk</a> and download freecap.</li>
+					<li>Unzip it.</li>
+					<li>Rename the folder to freecap</li>
+					<li>FTP to your website, and upload the entire freecap folder to your phpBB2 folder. That is,
+						make sure you have a /phpBB2/freecap folder with the files directly in that. (Obviously,
+						if your phpBB2 is in a different folder, then substitute that in whenever appropriate.)
+					</li>
+				</ul>
+			</li>
+		</ul>
+		<br />
+	</li>
+	<li>
+		<strong>Configure freecap.</strong> You will need to edit the <u>freecap.php</u> file. You can either do it with a remote or 
+		local editor ... take your pick. So either way, open it up and edit it:<br /><br />
+		<ul>
+			<li>Configure the site_tag array to display your site's name. This is to prevent people being tricked
+				into filling out your CAPTCHA for a spammer. I would suggest something like:
+<pre>
+$site_tags[0] = "";
+$site_tags[1] = "For Access to MYDOMAIN.COM";
+</pre>
+				(Leaving the first [0] one empty will help prevent text from covering up the image.)
+				<br /><br />
+			</li>
+			<li>Pick a hash function:
+				<ul>
+					<li>PHP 4.3 or greater: <tt>$hash_func = "sha1";</tt></lii>
+					<li>Older versions: <tt>$hash_func = "crc32";</tt></li>
+				</ul>
+				You should see that line already in <u>freecap.php</u>. You may not need to change it.
+				<br /><br />
+			</li>
+			<li>Change max attempts: <tt>$max_attempts = 2000;</tt> This is just for testing purposes. After you
+				are sure everything is working, you can set it back down to 20.
+				<br /><br />
+			</li>
+			<li>Change merge type (optional): <tt>$merge_type = 1;</tt> Personally, I find them hard to read when merged.<br /><br /></li>
+			<li>There are other things you can change if you want. Just read the file and follow its instructions. I would
+				recommend making sure it works before you start changing a bunch of things.</li>
+		</ul>
+		<br />
+	</li>
+	<li>
+		Once you have made all those changes, <b>save and upload freecap.php</b>.<br /><br />
+	</li>
+	<li>
+		Open up mywebsite.com/phpBB2/freecap/freecap.php in a browser. You should see a CAPTCHA image. If you don't,
+		make sure you have GD installed and running. Also, don't be concerned if you cannot read every word. There will be
+		a link for generating a new image if the user cannot read it.<br /><br />
+	</li>
+	<li>
+		Now it's time to <strong>hack the phpBB2 template</strong>. If you are using the default skin, it will be in the 
+		folder: <tt>templates/subSilver</tt>. The name of the file is: <tt>profile_add_body.tpl</tt>.
+		Edit it, and pick a spot where you want the CAPTCHA to go. I'd suggest under the password.
+		Paste this HTML code:
+<pre>
+&lt;tr&gt;
+	&lt;td class="row1"&gt;&lt;span class="gen"&gt;CAPTCHA Image:&lt;/span&gt;&lt;br /&gt;
+	&lt;td class="row2"&gt;
+		&lt;img id="freecap" src="<strong><u>/phpBB2</u></strong>/freecap/freecap.php" /&gt;
+		&lt;div style="margin: 0.5em 0;"&gt;
+			&lt;label style="font-size: 10px;" for="captcha"&gt;Word in Above Image:&lt;/label&gt;
+			&lt;input id="captcha" name="captcha" type="text" size="10" /&gt;
+		&lt;/div&gt;
+		&lt;div style="font-size: 10px;"&gt;
+			Cannot read the image? 
+			&lt;a href="#" onclick="document.getElementById('freecap').src='<strong><u>/phpBB2</u></strong>/freecap/freecap.php?'+Math.random();"&gt;Click Here&lt;/a&gt;
+			to generate a new one.
+		&lt;/div&gt;
+	&lt;/td&gt;
+&lt;/tr&gt;
+</pre>
+		<b>Note:</b> There are two places (underlined and in bold) in the above snippet where you may have to adjust the path to match yours.
+		If you use a custom skin, you may have to modify the code slightly.	But I'm sure you'll figure that out.
+		<br /><br />
+	</li>
+	<li>
+		Save and upload the file. Go to your message board and check out the registration page. You should see the 
+		CAPTCHA. Clicking on the link should generate a new image. But it isn't activated yet.<br /><br />
+	</li>
+	<li>
+		Edit the <tt>phpBB2/includes/usercp_register.php</tt> file. (Remember to make a backup copy!) Around line 265,
+		you'll see a block of code that says:
+<pre>
+	else if ( $mode == 'register' )
+	{
+		if ( empty($username) || empty($new_password) || empty($password_confirm) || empty($email) )
+		{
+			$error = TRUE;
+			$error_msg .= ( ( isset($error_msg) ) ? '&lt;br /&gt;' : '' ) . $lang['Fields_empty'];
+		}
+	}
+</pre>
+		You need to add some lines to it, just in front of that closing brace. That section should look like:
+<pre>
+	else if ( $mode == 'register' )
+	{
+		if ( empty($username) || empty($new_password) || empty($password_confirm) || empty($email) )
+		{
+			$error = TRUE;
+			$error_msg .= ( ( isset($error_msg) ) ? '&lt;br /&gt;' : '' ) . $lang['Fields_empty'];
+		}
+	
+<b>		session_start();
+		if (!isset($_POST['captcha']) || !isset($_SESSION['freecap_word_hash']) || $_SESSION['hash_func']($_POST['captcha']) != $_SESSION['freecap_word_hash'])
+		{
+			$error = TRUE;
+			$error_msg .= ( ( isset($error_msg) ) ? '&lt;br /&gt;' : '' ) . "The word you entered did not match the image.";
+		}
+		unset($_SESSION['freecap_word_hash']);
+</b>
+	}
+</pre>
+		Note that you are only adding those seven lines in bold!<br /><br />
+	</li>
+	<li>
+		Test it out. Just enter a word and hit submit. It should give you an error if you type the wrong one in.
+		If everything is working, then you might want to adjust the freecap.php file again to limit the number of 
+		images to something more reasonable.
+	</li>
+</ol>
+<h2>In The Future</h2>
+<p>
+	It's highly possible that future upgrades of phpBB2 will overwrite your changes. If that happens, you can always
+	start over at step 5. This should keep your boards spambot free!
+</p>
+
+<h2>Feedback &amp; Help</h2>
+<p>
+	If you need help or have feedback, you can try
+	<a href="mailto:%66%65%65%64%62%61%63%6b@%6d%61%74%74%68%65%77%6c%65%76%65%72%74%6f%6e.%63%6f%6d">emailing me</a>.
+	But I don't make any promises that I'll have time to reply, and I won't be able to help you fix anything if you've broken
+	something.
+</p>
+<hr />
+<small>Copyright &copy; 2006 by Matthew Leverton.</small>
+</body>
+</html>
