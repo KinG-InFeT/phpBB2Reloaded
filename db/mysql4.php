@@ -340,8 +340,13 @@ class sql_db
 
 	function sql_error()
 	{
+	    /*
 		$result['message'] = mysql_error($this->db_connect_id);
-		$result['code'] = mysql_errno($this->db_connect_id);
+		$result['code']    = mysql_errno($this->db_connect_id);
+		*/
+		
+		$result['message'] = mysql_error();
+		$result['code']    = mysql_errno();
 
 		return $result;
 	}

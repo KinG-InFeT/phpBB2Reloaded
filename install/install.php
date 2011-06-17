@@ -1055,7 +1055,7 @@ else
 		// Write .htaccess file for MOD_REWRITE - SEO TOOLKIT
 		//
 		
-		$phpbb_path = str_replace('install', '', dirname($HTTP_SERVER_VARS['PHP_SELF']);
+		$phpbb_path = str_replace('install', '', dirname($HTTP_SERVER_VARS['PHP_SELF']));
 		
 		$htaccess_file = '# You could need to un-comment the following line
 # Options +FollowSymlinks
@@ -1113,8 +1113,8 @@ RewriteRule ^member([0-9]+)\.html$ '.$phpbb_path.'profile.php?mode=viewprofile&u
 # END PHPBB PAGES 
 #####################################################';
         
-        if(!is_writable($phpbb_root_path.".htaccess"))
-            chmod($phpbb_root_path.".htaccess", 0777);
+        //if(!is_writable($phpbb_root_path.".htaccess"))
+        //    chmod($phpbb_root_path.".htaccess", 0777);
 		
 		$open = fopen($phpbb_root_path.".htaccess","w") or die("Error .htaccess not writtable");
         fwrite($open,$htaccess_file);

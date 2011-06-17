@@ -229,6 +229,16 @@ include($phpbb_root_path . 'includes/sessions.'.$phpEx);
 include($phpbb_root_path . 'includes/auth.'.$phpEx);
 include($phpbb_root_path . 'includes/functions.'.$phpEx);
 include($phpbb_root_path . 'includes/db.'.$phpEx);
+
+//
+// www.phpBB-SEO.com SEO TOOLKIT BEGIN
+//
+include($phpbb_root_path . 'phpbb_seo/phpbb_seo_class.'.$phpEx);
+
+$phpbb_seo = new phpbb_seo();
+//
+// www.phpBB-SEO.com SEO TOOLKIT END
+//
  
 // We do not need this any longer, unset for safety purposes
 unset($dbpasswd);
@@ -265,16 +275,6 @@ if (file_exists('install') || file_exists('contrib'))
 {
 	message_die(GENERAL_MESSAGE, 'Please_remove_install_contrib');
 }
-
-//
-// www.phpBB-SEO.com SEO TOOLKIT BEGIN
-//
-include($phpbb_root_path . 'phpbb_seo/phpbb_seo_class.'.$phpEx);
-
-$phpbb_seo = new phpbb_seo();
-//
-// www.phpBB-SEO.com SEO TOOLKIT END
-//
 
 //
 // Show 'Board is disabled' message if needed.
