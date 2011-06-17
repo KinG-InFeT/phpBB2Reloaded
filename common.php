@@ -87,6 +87,16 @@ if (@phpversion() >= '5.0.0' && (!@ini_get('register_long_arrays') || @ini_get('
 	{
 		$HTTP_SESSION_VARS = Security_Parser($_SESSION);
 	}
+}else{
+    session_start();
+    if(isSet($_REQUEST['token'])) {
+        if( $_SESSION['token'] != $_REQUEST['token'] ) {
+    		die('Invalid Token <br />CSRF Attemp <br><br>Token POST: '. htmlspecialchars($_REQUEST['token']).'<br>Token SESSION :'.$_SESSION['token']);
+    	}
+    }else{
+        $token = md5(uniqid(rand(), true));
+        $_SESSION['token'] = $token;
+    }
 }
  
 // Protect against GLOBALS tricks
